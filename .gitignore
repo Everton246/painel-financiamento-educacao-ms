@@ -1,0 +1,17 @@
+# arquivos originais baixados: ficam só no computador, refeitos por atualizar.bat
+dados_brutos/
+dados/cache/
+coleta.log
+*.part
+
+# arquivos pessoais e saídas de teste: nunca vão para o repositório
+Claude outputs/
+testes/saida/
+.streamlit/secrets.toml
+
+__pycache__/
+*.pyc
+.venv/
+.DS_Store
+Thumbs.db
+~$*

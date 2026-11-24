@@ -1,0 +1,27 @@
+[theme]
+# cores repetidas de painel/dados.py (CORES); ao trocar uma, troque nos dois lugares
+base = "light"
+primaryColor = "#004F9F"
+backgroundColor = "#F9F9F9"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#30302E"
+linkColor = "#005CA9"
+borderColor = "#D5D5D5"
+showWidgetBorder = true
+baseRadius = "small"
+font = "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+headingFont = "'Open Sans', 'Nunito Sans', system-ui, sans-serif"
+
+[theme.sidebar]
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F9F9F9"
+
+[client]
+# sem o botão "Deploy" e as opções de desenvolvedor no menu ⋮ (o menu fica por cima da barra de utilidades)
+toolbarMode = "viewer"
+
+[browser]
+gatherUsageStats = false
+
+[server]
+maxUploadSize = 50

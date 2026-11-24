@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "Se usar este painel ou a sua base de dados, cite assim."
+title: "Financiamento da Educação Municipal de Mato Grosso do Sul: painel de dados"
+type: dataset
+authors:
+  - family-names: Bronzoni
+    given-names: Everton Kunzler
+abstract: >-
+  Painel interativo e base de dados públicos sobre o ICMS Educacional (distribuído pelo IQE-MS), a complementação VAAR
+  do Fundeb e as condições materiais das redes municipais dos 79 municípios de Mato Grosso do Sul, 2021 a 2026.
+  Pesquisa de doutorado em andamento (PPGEdu/UFMS). Dados públicos; não é um site oficial do governo.
+keywords:
+  - financiamento da educação
+  - ICMS Educacional
+  - IQE-MS
+  - Fundeb
+  - VAAR
+  - Mato Grosso do Sul
