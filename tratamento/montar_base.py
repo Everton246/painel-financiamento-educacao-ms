@@ -250,12 +250,64 @@ def fundeb_bb(cods):
                                         f"origem de receita, exercício de {ano} (ano civil de pagamento); coluna '{g} – {s}'",
                                         "arquivo": rel, "pagina": "", "observacao": ""}))
     out = pd.concat(partes, ignore_index=True)
-    liq = out[out["indicador"].str.endswith("_liquido")]
-    tot = liq.groupby(["cod_ibge", "ano"], as_index=False)["valor"].sum(min_count=1)
-    tot = tot.assign(indicador="fundeb_total_liquido", unidade="R$",
-                     fonte="Soma das colunas de valores líquidos do arquivo do FNDE do ano (contribuições + complementações)",
-                     arquivo="(derivado)", pagina="", observacao="soma feita pelo painel")
-    return pd.concat([out, tot], ignore_index=True)
+    tots = []
+    for tipo, rot in (("liquido", "líquidos"), ("bruto", "brutos")):
+        sel = out[out["indicador"].str.endswith("_" + tipo)]
+        tot = sel.groupby(["cod_ibge", "ano"], as_index=False)["valor"].sum(min_count=1)
+        tots.append(tot.assign(indicador=f"fundeb_total_{tipo}", unidade="R$",
+                               fonte=f"Soma das colunas de valores {rot} do arquivo do FNDE do ano (contribuições + complementações)",
+                               arquivo="(derivado)", pagina="", observacao="soma feita pelo painel; ano civil de pagamento"))
+    return pd.concat([out] + tots, ignore_index=True)
+
+
+def _cod(serie):
+    return serie.astype(str).str.replace(r"\.0$", "", regex=True)
+
+
+def fundeb_exercicio(cods):
+    """Fundeb devido no EXERCÍCIO (portarias do FNDE/MEC), para comparar com o pago no ano civil (Banco do Brasil)."""
+    pasta = BRUTOS / "fnde_fundeb_exercicio"
+    partes = []
+    cols = ["fundeb_exerc_contribuicao", "fundeb_exerc_vaaf", "fundeb_exerc_vaat", "fundeb_exerc_vaar",
+            "fundeb_exerc_complementacao_total", "fundeb_exerc_total"]
+    for ano, nome, obs in ((2025, "1.ReceitatotaldoFundebporentefederado_2025_P5-2026.xlsx",
+                            "última publicação do exercício (Portaria nº 5/2026, que traz também o ajuste do VAAR de 2025)"),
+                           (2026, "1-receita-total-do-fundeb-por-ente-federado-p-11_2026.xlsx",
+                            "2026 PROVISÓRIO: receita prevista (Portaria nº 11/2026)")):
+        p = pasta / nome
+        if not p.exists():
+            continue
+        raw = pd.read_excel(p, header=None)
+        titulo = str(raw.iloc[7, 0]).strip()
+        d = raw[raw.iloc[:, 0].astype(str).str.strip().eq("MS")].copy()
+        d["cod_ibge"] = _cod(d.iloc[:, 1])
+        d = d[d["cod_ibge"].isin(cods)]
+        for j, ind in zip(range(3, 9), cols):
+            rot = " ".join(str(raw.iloc[9, j]).split())
+            partes.append(pd.DataFrame({"cod_ibge": d["cod_ibge"].values, "ano": ano, "indicador": ind,
+                                        "valor": pd.to_numeric(d.iloc[:, j], errors="coerce").values, "unidade": "R$",
+                                        "fonte": f"FNDE/MEC, tabela '{titulo}', coluna '{rot}'",
+                                        "arquivo": "dados_brutos/fnde_fundeb_exercicio/" + nome, "pagina": "",
+                                        "observacao": obs}))
+    p = pasta / "AjustedaComplementaoVAAT_2024_P3-2025.xlsx"
+    if p.exists():
+        raw = pd.read_excel(p, header=None)
+        d = raw[raw.iloc[:, 0].astype(str).str.strip().eq("MS")].copy()
+        d["cod_ibge"] = _cod(d.iloc[:, 2])
+        for j, ind in ((3, "fundeb_exerc_vaat"), (4, "fundeb_exerc_vaat_distribuida"), (5, "fundeb_exerc_vaat_ajuste")):
+            v = dict(zip(d["cod_ibge"], pd.to_numeric(d.iloc[:, j], errors="coerce")))
+            rot = " ".join(str(raw.iloc[6, j]).split())
+            cs = sorted(cods)
+            partes.append(pd.DataFrame({"cod_ibge": cs, "ano": 2024, "indicador": ind,
+                                        "valor": [v.get(c, 0.0) for c in cs], "unidade": "R$",
+                                        "fonte": "FNDE/MEC, Portaria Interministerial nº 3, de 28/04/2025, Anexo II (ajuste da "
+                                                 f"complementação VAAT de 2024), coluna '{rot}'",
+                                        "arquivo": "dados_brutos/fnde_fundeb_exercicio/" + p.name, "pagina": "",
+                                        "observacao": ["" if c in v else "não consta no anexo: não recebeu VAAT em 2024 (valor 0)"
+                                                       for c in cs]}))
+    if not partes:
+        return pd.DataFrame(columns=["cod_ibge", "ano", "indicador", "valor", "unidade", "fonte", "arquivo", "pagina", "observacao"])
+    return pd.concat(partes, ignore_index=True)
 
 
 def _abre(p):
@@ -371,6 +423,22 @@ def ibge(cods):
                              "unidade": unid, "fonte": f"IBGE/SIDRA, tabela {nome.split('sidra')[1].split('.')[0]} ({x['D2N']})",
                              "arquivo": "dados_brutos/ibge/" + nome, "pagina": "",
                              "observacao": "PIB publicado em mil reais; multiplicado por 1.000" if ind == "pib" else ""})
+    p = BRUTOS / "ibge" / "ipca_numero_indice_sidra1737_2021_2025.json"
+    if p.exists():
+        d = pd.DataFrame(json.loads(p.read_text(encoding="utf-8"))[1:])
+        d["ano"] = d["D3C"].str[:4].astype(int)
+        d["v"] = pd.to_numeric(d["V"], errors="coerce")
+        media = d.groupby("ano")["v"].agg(["mean", "count"])
+        base = media.loc[2025, "mean"]
+        for ano, r in media.iterrows():
+            regs.append({"cod_ibge": "50", "ano": int(ano), "indicador": "ipca_media_anual", "valor": r["mean"],
+                         "unidade": "número-índice (dez/1993 = 100)",
+                         "fonte": "IBGE/SIDRA, tabela 1737 (IPCA, número-índice), média dos 12 meses",
+                         "arquivo": "dados_brutos/ibge/" + p.name, "pagina": "", "observacao": f"{int(r['count'])} meses"})
+            regs.append({"cod_ibge": "50", "ano": int(ano), "indicador": "ipca_fator_reais_2025", "valor": base / r["mean"],
+                         "unidade": "multiplicador", "fonte": "IPCA médio de 2025 ÷ IPCA médio do ano (IBGE/SIDRA, tabela 1737)",
+                         "arquivo": "dados_brutos/ibge/" + p.name, "pagina": "",
+                         "observacao": "valor do ano × fator = valor em reais médios de 2025 (cálculo do painel)"})
     pop = ler_ab("09_populacao.csv")
     for _, r in pop.iterrows():
         regs.append({"cod_ibge": r["cod_ibge"], "ano": 2022, "indicador": "pop_censo2022", "valor": r["populacao_2022"],
@@ -401,7 +469,8 @@ def main():
     mun = municipios()
     cods = set(mun["cod_ibge"])
     blocos = {"objetivo a": objetivo_a(), "IQE-MS": iqe(), "objetivo b": objetivo_b(), "Inep (Iquems)": inep_iquems(cods),
-              "remuneração 2021": remuneracao_inep(cods), "Fundeb por município": fundeb_bb(cods), "Siconfi": siconfi(cods),
+              "remuneração 2021": remuneracao_inep(cods), "Fundeb por município": fundeb_bb(cods),
+              "Fundeb por exercício": fundeb_exercicio(cods), "Siconfi": siconfi(cods),
               "IBGE": ibge(cods), "Siope": siope(cods)}
     blocos["Siconfi"] = valida_msc(blocos["Siconfi"])
     infra = CACHE / "censo_infra_municipal.parquet"

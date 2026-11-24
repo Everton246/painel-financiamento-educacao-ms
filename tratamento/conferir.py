@@ -66,6 +66,10 @@ def valor(ind, ano):
     return dict(zip(d["cod_ibge"].astype(str), d["valor"]))
 
 
+def valores_nn(ind, ano):
+    return {c: v for c, v in valor(ind, ano).items() if v is not None and not np.isnan(v)}
+
+
 def texto(at, ano):
     d = ATR[(ATR["atributo"] == at) & (ATR["ano"] == ano)]
     return dict(zip(d["cod_ibge"].astype(str), d["texto"]))
@@ -283,7 +287,8 @@ def conf_somas():
         s = sum(v for v in valor("vaar_valor", ano).values() if pd.notna(v))
         item(abs(s - ref) < 0.01, f"VAAR {ano}: soma das redes municipais de MS R$ {br(s)} = total registrado no LOG do 04_dados (R$ {br(ref)})")
     # Fundeb: líquido = bruto + dedução (dedução vem negativa no arquivo)
-    f = IND[IND["indicador"].str.startswith("fundeb_") & ~IND["indicador"].eq("fundeb_total_liquido")].copy()
+    f = IND[IND["indicador"].str.match(r"fundeb_.+_(bruto|deducao|liquido)$")
+            & ~IND["indicador"].str.startswith(("fundeb_total_", "fundeb_exerc_"))].copy()
     f["origem"] = f["indicador"].str.rsplit("_", n=1).str[0]
     f["tipo"] = f["indicador"].str.rsplit("_", n=1).str[1]
     pv = f.pivot_table(index=["cod_ibge", "ano", "origem"], columns="tipo", values="valor", aggfunc="first").dropna()
@@ -300,6 +305,23 @@ def conf_somas():
         R.append("\n  Município-ano com diferença (a página de condições materiais mostra os dois valores):\n")
         for _, r in m[m["dif"] > 1.0].sort_values("dif", ascending=False).head(15).iterrows():
             R.append(f"  - {r['municipio_dca']} {r['ano']}: DCA R$ {br(r['valor_dca'])}; MSC R$ {br(r['valor_msc'])}")
+    # Fundeb: VAAR devido no exercício de 2025 (FNDE, Portaria 5/2026) × VAAR após ajuste de 2025 (04_dados)
+    a, b = valores_nn("fundeb_exerc_vaar", 2025), valores_nn("vaar_valor_apos_ajuste", 2025)
+    dif = [c for c in b if c in a and abs(a[c] - b[c]) > 0.01]
+    item(len(a) == 79 and not dif, f"VAAR do exercício de 2025 na tabela de receita total do FNDE (Portaria nº 5/2026) = VAAR "
+         f"após ajuste do 04_dados em {79 - len(dif)} de 79 municípios", obrigatoria=False)
+    for ano, ex, bb, rot in ((2025, "fundeb_exerc_total", "fundeb_total_bruto", "total"),
+                             (2025, "fundeb_exerc_contribuicao", "fundeb_receita_de_contribuicoes_bruto", "receita da contribuição"),
+                             (2025, "fundeb_exerc_vaat", "fundeb_complementacao_vaat_bruto", "VAAT"),
+                             (2025, "fundeb_exerc_vaar", "fundeb_complementacao_vaar_bruto", "VAAR"),
+                             (2024, "fundeb_exerc_vaat", "fundeb_complementacao_vaat_bruto", "VAAT")):
+        a, b = valores_nn(ex, ano), valores_nn(bb, ano)
+        cs = [c for c in a if c in b]
+        sa, sb = sum(a[c] for c in cs), sum(b[c] for c in cs)
+        n1 = sum(1 for c in cs if b[c] and abs(a[c] / b[c] - 1) > 0.01) + sum(1 for c in cs if not b[c] and a[c])
+        item(True, f"Fundeb {ano}, {rot}: devido no exercício R$ {br(sa)} × pago no ano civil R$ {br(sb)} "
+             f"({br((sa / sb - 1) * 100 if sb else 0)}%); municípios com diferença acima de 1%: {n1} de {len(cs)} "
+             "(informativo: as fontes medem coisas diferentes)", obrigatoria=False)
     # matrículas: soma das escolas (Iquems) × sinopse (04_dados), 2024
     a, b = valor("mat_municipal_censo_escolas", 2024), valor("mat_municipal_sinopse_censo", 2024)
     iguais = sum(1 for c in b if c in a and abs(a[c] - b[c]) < 0.5)

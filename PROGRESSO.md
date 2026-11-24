@@ -95,10 +95,8 @@ Diário de trabalho e decisões. Pedido de origem: `03_doutorado/pedidos_claude_
 
 ### Decisões pendentes do autor
 
-1. Correspondência natureza de despesa → frentes do pré-projeto (proposta na página de condições materiais).
-2. Manter ou retirar a composição pela Matriz de Saldos Contábeis até o Siope voltar (e a tolerância de 0,5%).
-3. Corrigir ou não pela inflação as séries de 2021–2025 do objetivo c (e qual índice).
-4. Para o objetivo c, usar o Fundeb pago no ano civil (FNDE/BB) ou buscar o valor do exercício.
+1 a 4: resolvidas na sessão 2 (abaixo). Resta: índice da correção (IPCA médio anual × IPCA de dezembro) e se o Fundeb de
+2021–2023 por exercício deve ser extraído dos PDFs do FNDE.
 5. Incluir no painel os indicadores do VAAR do Inep (atendimento e aprendizagem) e as tabelas da aba "Comparativo Fundeb"
    do ranking provisório (hoje fora do pipeline).
 6. Transformar o ranking provisório em script no 04_dados (pendência já registrada lá) ou aposentá-lo: o painel mostra que
@@ -107,6 +105,23 @@ Diário de trabalho e decisões. Pedido de origem: `03_doutorado/pedidos_claude_
 ### O que o autor deve validar
 
 Ver `LEIAME.md`, seção 5 (lista de 10 itens).
+
+## Sessão 2 — 24/11/2026 (respostas do autor)
+
+Respostas: 1 aprovado (frentes); 2 manter a Matriz de Saldos Contábeis onde confere com a DCA; 3 aba à parte corrigida pela
+inflação; 4 procurar o valor de cada exercício e ver se diverge; 5 ok; 6 manter o mesmo e-mail; 7 publicar.
+
+- **Inflação:** `coleta/05_ibge.py` baixa o IPCA mensal (SIDRA 1737), 2021–2025; a base guarda o IPCA médio anual e o fator
+  para reais médios de 2025. Na página de condições materiais, todo tema em reais tem duas abas: valores correntes e
+  corrigidos. Decisão de método tomada aqui (conservadora, reversível): IPCA médio do ano, base 2025.
+- **Fundeb por exercício** (`coleta/06_fundeb_exercicio.py`): exercício financeiro = ano civil, mas as fontes registram
+  coisas diferentes (portarias: valor devido no exercício; Banco do Brasil: valor pago no ano, que inclui a última parcela e
+  os ajustes do exercício anterior). Em planilha, o FNDE publica o exercício de 2025 completo (Portaria nº 5/2026), o
+  previsto de 2026 (Portaria nº 11/2026) e a VAAT devida de 2024 (Portaria nº 3/2025); 2021–2023 só em PDF (não coletados).
+  Resultado (2025, 79 municípios): receita da contribuição quase igual (até 0,4% por município); VAAT do exercício 27% menor
+  que a paga no ano; VAAR do exercício 18% menor que o pago no ano; total 0,4% menor (até 2,9% por município). O VAAR do
+  exercício de 2025 na tabela do FNDE é idêntico ao VAAR após ajuste do 04_dados nos 79 municípios.
+- **Frentes e MSC:** textos do painel atualizados para "aprovado pelo autor".
 
 ### Pendências registradas sobre 04_dados (sem alterar nada lá)
 

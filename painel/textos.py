@@ -121,11 +121,14 @@ PAGINAS = {
         "mede": "O que há de dado público sobre as condições materiais das redes municipais: despesa em educação (Siconfi), "
                 "Fundeb recebido (FNDE), infraestrutura das escolas municipais (Censo Escolar) e remuneração docente (Inep).",
         "ler": "Compare o período anterior (2021–2023) com o de vigência (2024–2026). Use o filtro 'Seleção de campo' para "
-               "ver só os seis municípios. As três frentes do pré-projeto aparecem como aproximação pela natureza da "
-               "despesa (pessoal; obras; material de consumo e equipamentos), marcada como decisão pendente do autor.",
+               "ver só os seis municípios. As três frentes do pré-projeto aparecem pela natureza da despesa (pessoal; obras; "
+               "material de consumo e equipamentos; correspondência aprovada pelo autor). Cada tema em reais tem duas abas: "
+               "valores correntes e valores corrigidos pela inflação (IPCA, reais médios de 2025). No Fundeb, há a "
+               "comparação entre o devido no exercício e o pago no ano civil.",
         "limites": "O Siope (fonte prevista no pré-projeto) estava fora do ar na coleta (24/11/2026). A composição da despesa "
                    "por natureza (Matriz de Saldos Contábeis) só aparece onde o total confere com a DCA. A remuneração do "
-                   "Inep só vai até 2021. Os valores estão em reais correntes (sem correção pela inflação). Associação no "
+                   "Inep só vai até 2021. A correção pela inflação usa o IPCA médio de cada ano (decisão de método: outro índice "
+                   "ou o IPCA de dezembro dariam valores um pouco diferentes). Associação no "
                    "tempo não é efeito: o desenho não isola o ICMS Educacional de outros fatores."},
     "municipio": {"mede": "Tudo o que a base tem sobre um município.", "ler": "Escolha o município no filtro lateral ou na busca.",
                   "limites": "Mesmos limites das páginas de origem. 2026 é provisório."},

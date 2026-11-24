@@ -1,7 +1,7 @@
 """Atualiza o painel: baixa só o que é novo, remonta a base e roda as conferências.
 
 Uso:
-  python atualizar.py               coleta (01 a 05), base, catálogo de fontes e conferência
+  python atualizar.py               coleta (01 a 06), base, catálogo de fontes e conferência
   python atualizar.py --so-base     só remonta a base e confere (sem acessar a internet)
   python atualizar.py --verificar   NÃO baixa nada: para cada fonte de dados/fontes_status.csv, verifica se ela publicou
                                     período mais novo que o da base e grava docs/verificacoes/AAAA-MM-DD.md.
@@ -19,7 +19,7 @@ from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent
 PY = sys.executable
-COLETA = ["01_normas.py", "02_fundeb_fnde.py", "03_siope.py", "04_siconfi.py", "05_ibge.py"]
+COLETA = ["01_normas.py", "02_fundeb_fnde.py", "03_siope.py", "04_siconfi.py", "05_ibge.py", "06_fundeb_exercicio.py"]
 OPCIONAIS = {"03_siope.py"}  # falha esperada enquanto o serviço do FNDE estiver fora do ar
 
 

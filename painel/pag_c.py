@@ -37,7 +37,9 @@ def matriculas(cod, ano):
     return v
 
 
-def _series(indicador, cods, por_mat=False):
+def _series(indicador, cods, por_mat=False, real=False):
+    """Série 2021–2025 por município. por_mat: ÷ matrículas da rede municipal. real: × fator do IPCA (reais médios de 2025)."""
+    fator = {a: valores("ipca_fator_reais_2025", a).get("50") for a in ANOS_C}
     linhas = []
     for c in cods:
         for a in ANOS_C:
@@ -45,6 +47,9 @@ def _series(indicador, cods, por_mat=False):
             if por_mat and v is not None and pd.notna(v):
                 m = matriculas(c, a)
                 v = v / m if m else None
+            if real and v is not None and pd.notna(v):
+                f = fator.get(a)
+                v = v * f if f is not None and pd.notna(f) else None
             linhas.append({"cod_ibge": c, "Município": NOME[c], "ano": a, "valor": v})
     return pd.DataFrame(linhas)
 
@@ -70,7 +75,7 @@ def _grafico_series(s, titulo, unidade, nome, chave):
     mostrar_grafico(fig, nome, chave, dados=s.pivot_table(index="Município", columns="ano", values="valor").reset_index())
 
 
-def _tabela_periodos(s, nome, chave, fonte):
+def _tabela_periodos(s, nome, chave, fonte, real=False):
     t = s.pivot_table(index=["cod_ibge", "Município"], columns="ano", values="valor", dropna=False).reset_index()
     t.columns = [str(c) for c in t.columns]
     ant = [str(a) for a in (2021, 2022, 2023) if str(a) in t]
@@ -80,7 +85,76 @@ def _tabela_periodos(s, nome, chave, fonte):
     t["Variação entre as médias (%)"] = (t.iloc[:, -1] / t.iloc[:, -2] - 1) * 100
     tabela(t, nome, chave, fonte)
     st.caption("Médias e variação calculadas pelo painel com os anos que a fonte traz; se faltar um ano no período, a média "
-               "fica *sem dado*. Valores em reais correntes (sem correção pela inflação).")
+               "fica *sem dado*. " + ("Valores CORRIGIDOS pela inflação: reais médios de 2025 (IPCA médio anual, IBGE)."
+                                      if real else "Valores em reais correntes (sem correção pela inflação)."))
+
+
+def _monetario(ind, cods, por_mat, titulo, chave):
+    """Duas abas: valores correntes e valores corrigidos pela inflação (IPCA, reais médios de 2025)."""
+    ab1, ab2 = st.tabs(["Valores correntes", "Corrigidos pela inflação (IPCA, R$ médios de 2025)"])
+    un = "R$ por matrícula" if por_mat else "R$"
+    with ab1:
+        s = _series(ind, cods, por_mat)
+        if s["valor"].notna().sum() == 0:
+            sem_dado("nenhum valor para este recorte.")
+        else:
+            _grafico_series(s, titulo + (" por matrícula" if por_mat else ""), un, f"condicoes_{ind}", chave)
+        _tabela_periodos(s, f"condicoes_{ind}", f"{chave}_tab", fontes_de([ind], ANOS_C, cods))
+    with ab2:
+        st.markdown("Cada ano multiplicado pelo fator **IPCA médio de 2025 ÷ IPCA médio do ano** (IBGE, tabela 1737). "
+                    "Assim, 2021 a 2025 ficam na mesma moeda (reais médios de 2025) e a comparação entre os períodos "
+                    "anterior e de vigência desconta a inflação. Cálculo do painel.")
+        f = pd.DataFrame({"ano": ANOS_C, "IPCA médio do ano": [valores("ipca_media_anual", a).get("50") for a in ANOS_C],
+                          "Fator (reais médios de 2025)": [valores("ipca_fator_reais_2025", a).get("50") for a in ANOS_C]})
+        st.dataframe(f.style.format({"IPCA médio do ano": "{:,.2f}", "Fator (reais médios de 2025)": "{:.4f}"}),
+                     hide_index=True)
+        s = _series(ind, cods, por_mat, real=True)
+        if s["valor"].notna().sum() == 0:
+            sem_dado("nenhum valor para este recorte.")
+        else:
+            _grafico_series(s, titulo + (" por matrícula" if por_mat else "") + " — R$ médios de 2025 (IPCA)",
+                            un + " de 2025", f"condicoes_{ind}_ipca", f"{chave}_r")
+        _tabela_periodos(s, f"condicoes_{ind}_reais_2025", f"{chave}_r_tab",
+                         fontes_de([ind, "ipca_fator_reais_2025"], ANOS_C, list(cods) + ["50"]), real=True)
+
+
+def _exercicio_x_ano_civil(cods):
+    st.markdown("#### Devido no exercício × pago no ano civil")
+    st.markdown("**Exercício = ano civil** (1º de janeiro a 31 de dezembro). A diferença está no que cada fonte registra: as "
+                "portarias do FNDE/MEC trazem o valor que cabe à rede **no exercício**; o arquivo do Banco do Brasil traz o "
+                "que foi **pago no ano**. A última parcela das complementações de um exercício é paga em janeiro do ano "
+                "seguinte, e os ajustes saem em abril ou maio do ano seguinte. Por isso o pago em 2025 inclui dinheiro do "
+                "exercício de 2024. Em planilha, o FNDE publica o exercício de 2025 completo (Portaria nº 5/2026), o "
+                "previsto de 2026 (Portaria nº 11/2026) e só a VAAT devida de 2024 (Portaria nº 3/2025); 2021–2023 só em "
+                "PDF (não coletados).")
+    pares = [(2025, "Receita da contribuição", "fundeb_exerc_contribuicao", "fundeb_receita_de_contribuicoes_bruto"),
+             (2025, "Complementação VAAT", "fundeb_exerc_vaat", "fundeb_complementacao_vaat_bruto"),
+             (2025, "Complementação VAAR", "fundeb_exerc_vaar", "fundeb_complementacao_vaar_bruto"),
+             (2025, "Total", "fundeb_exerc_total", "fundeb_total_bruto"),
+             (2024, "Complementação VAAT", "fundeb_exerc_vaat", "fundeb_complementacao_vaat_bruto"),
+             (2024, "Complementação VAAR (devido após ajuste)", "vaar_valor_apos_ajuste", "fundeb_complementacao_vaar_bruto")]
+    resumo, linhas = [], []
+    for ano, rot, ex, bb in pares:
+        e, b = valores(ex, ano), valores(bb, ano)
+        cs = [c for c in cods if c in e and c in b and pd.notna(e[c]) and pd.notna(b[c])]
+        se, sb = sum(e[c] for c in cs), sum(b[c] for c in cs)
+        dif = [(e[c] - b[c]) / b[c] * 100 for c in cs if b[c]]
+        resumo.append({"Exercício": ano, "Componente": rot, "Devido no exercício (R$)": se, "Pago no ano civil (R$)": sb,
+                       "Diferença (R$)": se - sb, "Diferença (%)": (se / sb - 1) * 100 if sb else None,
+                       "Municípios com diferença > 1%": sum(1 for x in dif if abs(x) > 1), "Municípios comparados": len(cs)})
+        for c in cs:
+            linhas.append({"cod_ibge": c, "Município": NOME[c], "Exercício": ano, "Componente": rot, "Devido no exercício (R$)": e[c],
+                           "Pago no ano civil (R$)": b[c], "Diferença (R$)": e[c] - b[c],
+                           "Diferença (%)": (e[c] / b[c] - 1) * 100 if b[c] else None})
+    st.dataframe(pd.DataFrame(resumo).style.format({"Devido no exercício (R$)": "{:,.2f}", "Pago no ano civil (R$)": "{:,.2f}",
+                                                     "Diferença (R$)": "{:,.2f}", "Diferença (%)": "{:,.2f}"}, na_rep="sem dado"),
+                 hide_index=True, use_container_width=True)
+    st.caption("Soma dos municípios do recorte. Valores brutos (antes das deduções). Fontes: FNDE/MEC, portarias interministeriais "
+               "(exercício) e valores repassados pelo Banco do Brasil (ano civil); VAAR devido de 2024: 04_dados (Portaria nº 3/2025). "
+               "Diferenças calculadas pelo painel.")
+    with st.expander("Por município"):
+        tabela(pd.DataFrame(linhas), "fundeb_exercicio_x_ano_civil", "c_fundeb_exerc",
+               fontes_de(["fundeb_exerc_total", "fundeb_exerc_vaat", "fundeb_total_bruto"], [2024, 2025], cods))
 
 
 def pagina_condicoes():
@@ -95,41 +169,29 @@ def pagina_condicoes():
                             help="Despesa empenhada em educação ÷ matrículas da rede municipal (Censo). Cálculo do painel.")
         ind = st.selectbox("Despesa", ["educ_dca_empenhada", "educ_dca_liquidada", "educ_dca_paga", "educ_dca_sub361_empenhada",
                                        "educ_dca_sub365_empenhada"], format_func=lambda i: nome_ind(CAT, i), key="c_desp_ind")
-        s = _series(ind, cods, por_mat)
-        un = "R$ por matrícula" if por_mat else "R$"
-        _grafico_series(s, f"{nome_ind(CAT, ind)}{' por matrícula' if por_mat else ''}", un, f"condicoes_{ind}", "c_desp")
-        _tabela_periodos(s, f"condicoes_{ind}", "c_desp_tab", fontes_de([ind], ANOS_C, cods))
-        anos_ok = sorted(IND.loc[IND["indicador"] == ind, "ano"].unique())
-        if 2025 not in anos_ok:
-            st.caption("DCA 2025: **sem dado** para os municípios que ainda não a entregaram ao Siconfi (prazo: 30/04/2026) "
-                       "ou cuja entrega não constava na consulta de 24/11/2026.")
+        _monetario(ind, cods, por_mat, nome_ind(CAT, ind), "c_desp")
+        st.caption("DCA ausente: Caracol (2022) e Douradina (2024) declararam a DCA sem a função Educação (*sem dado*).")
     elif tema == "frentes":
-        st.info("**Decisão pendente do autor.** O pré-projeto prevê as frentes (remuneração e carreira; infraestrutura; "
-                "materiais didáticos, pedagógicos e tecnológicos) com os indicadores de despesa do **Siope**, que estava fora "
-                "do ar. Aqui, como aproximação, a despesa da função Educação vem da **Matriz de Saldos Contábeis** (Siconfi) "
-                "por natureza de despesa. A correspondência natureza → frente é uma proposta para o autor validar. A "
-                "composição só aparece nos município-ano em que o total da matriz confere com a DCA (±0,5%).", icon="⚠️")
+        st.info("**Frentes do pré-projeto** (correspondência aprovada pelo autor em 24/11/2026): remuneração e carreira = "
+                "pessoal e encargos; infraestrutura = obras e instalações; materiais = material de consumo e equipamentos. "
+                "Enquanto o **Siope** (fonte prevista) estiver fora do ar, a despesa da função Educação por natureza vem da "
+                "**Matriz de Saldos Contábeis** (Siconfi) e só aparece nos município-ano em que o total da matriz confere com "
+                "a DCA (±0,5%) — decisão do autor de manter, de 24/11/2026.", icon="ℹ️")
         ind = st.selectbox("Natureza de despesa (frente)", list(FRENTES), format_func=FRENTES.get, key="c_frente")
         por_mat = st.toggle("Por matrícula da rede municipal", value=True, key="c_fr_mat")
-        s = _series(ind, cods, por_mat)
-        if s["valor"].notna().sum() == 0:
-            sem_dado("a matriz não confere com a DCA nos município-ano deste recorte, ou o Siconfi não trouxe a matriz.")
-        else:
-            _grafico_series(s, FRENTES[ind], "R$ por matrícula" if por_mat else "R$", f"condicoes_{ind}", "c_fr")
-        _tabela_periodos(s, f"condicoes_{ind}", "c_fr_tab", fontes_de([ind], ANOS_C, cods))
+        _monetario(ind, cods, por_mat, FRENTES[ind], "c_fr")
         ok = IND[(IND["indicador"] == "educ_msc_pessoal") & IND["cod_ibge"].isin(cods)]
         st.caption(f"Município-ano com composição validada no recorte: {len(ok)} de {len(cods) * len(ANOS_C)}.")
     elif tema == "fundeb":
-        ind = st.selectbox("Origem", ["fundeb_total_liquido", "fundeb_receita_de_contribuicoes_liquido", "fundeb_complementacao_vaaf_liquido",
-                                      "fundeb_complementacao_vaat_liquido", "fundeb_complementacao_vaar_liquido"],
+        ind = st.selectbox("Origem (pago no ano civil)", ["fundeb_total_liquido", "fundeb_receita_de_contribuicoes_liquido",
+                                                          "fundeb_complementacao_vaaf_liquido", "fundeb_complementacao_vaat_liquido",
+                                                          "fundeb_complementacao_vaar_liquido"],
                            format_func=lambda i: nome_ind(CAT, i), key="c_fundeb_ind")
         por_mat = st.toggle("Por matrícula da rede municipal", value=False, key="c_fundeb_mat")
-        s = _series(ind, cods, por_mat)
-        _grafico_series(s, nome_ind(CAT, ind) + (" por matrícula" if por_mat else ""), "R$ por matrícula" if por_mat else "R$",
-                        f"condicoes_{ind}", "c_fundeb")
-        _tabela_periodos(s, f"condicoes_{ind}", "c_fundeb_tab", fontes_de([ind], ANOS_C, cods))
+        _monetario(ind, cods, por_mat, nome_ind(CAT, ind), "c_fundeb")
         st.caption("Ano civil de pagamento (inclui ajustes de exercícios anteriores). A complementação VAAR começou em 2023. "
                    "A receita de contribuições é a parte do fundo estadual que cabe à rede; não é recurso novo do município.")
+        _exercicio_x_ano_civil(cods)
     elif tema == "infra":
         itens = [i for i in CAT["indicador"] if str(i).startswith("infra_")]
         ind = st.selectbox("Item", itens, format_func=lambda i: nome_ind(CAT, i), key="c_infra_ind",

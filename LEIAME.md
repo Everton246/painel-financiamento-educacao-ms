@@ -57,15 +57,14 @@ os scripts de lá). Depois, `atualizar.bat --so-base` aqui. O painel passa a mos
 ## 5. O que validar (lista para o autor)
 
 1. **Página Normas**: as descrições de "o que muda" e "repasse afetado" das normas (são resumos meus; a fonte é o texto).
-2. **Condições materiais → frentes**: a correspondência natureza de despesa → frente do pré-projeto (pessoal = remuneração;
-   obras = infraestrutura; material de consumo e equipamentos = materiais) é proposta minha, à espera do Siope.
-3. **Validação da Matriz de Saldos Contábeis**: aceita só onde o total da função Educação confere com a DCA (±0,5%; na base
-   de 24/11/2026, 90 de 363 município-ano com as duas fontes; a conferência exata, de R$ 1,00, fecha em 83). Decidir se fica, se a tolerância muda ou se a composição sai até o Siope voltar.
+2. ~~Frentes~~ e 3. ~~Matriz de Saldos Contábeis~~: aprovadas pelo autor em 24/11/2026 (correspondência natureza →
+   frente; composição mantida só onde confere com a DCA, ±0,5%).
 4. **Valores por matrícula na página de condições materiais**: matrículas da sinopse (2024–2025) e soma das escolas do Censo
    (2021–2023); a conferência mostra que as duas coincidem em 2024 nos 79 municípios.
-5. **Reais correntes**: nada foi corrigido pela inflação. Decidir se as séries de 2021–2025 devem ser deflacionadas (e por
-   qual índice).
-6. **Fundeb (FNDE)**: é o valor pago no ano civil (inclui ajustes de anos anteriores), não o do exercício.
+5. **Correção pela inflação** (pedida em 24/11/2026): aba à parte, com o IPCA médio de cada ano e valores em reais médios
+   de 2025. Conferir se prefere outro índice ou o IPCA de dezembro.
+6. **Fundeb**: a página mostra o pago no ano civil e, ao lado, o devido no exercício (2024 só VAAT; 2025 completo). A
+   contribuição quase coincide; as complementações divergem (ver conferência).
 7. **Filtro "Situação no IQE-MS"**: usa os critérios descritivos do 04_dados (mínimo = menor coeficiente do ano; sem
    resultado completo = linha com até 3 valores).
 8. **Textos do Início** (resumo do pré-projeto) e dos quadros "Como ler" (`painel/textos.py`).

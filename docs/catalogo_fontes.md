@@ -120,6 +120,15 @@ Regras seguidas: só dados públicos, sem login; `robots.txt` consultado antes d
 
 ## Objetivo / uso: c
 
+### Fundeb devido no EXERCÍCIO por ente (receita total por ente federado; ajuste da VAAT)
+
+- **Para que serve:** c · **Entra no painel:** sim (Condições materiais: exercício × ano civil) · **Situação:** parcial
+- **Fonte oficial:** FNDE/MEC, portarias interministeriais — https://www.gov.br/fnde/pt-br/acesso-a-informacao/acoes-e-programas/financiamento/fundeb
+- **Período disponível:** planilhas: 2024 (só VAAT), 2025 (completo), 2026 (previsto); 2021–2023 só em PDF · **Periodicidade:** várias publicações por exercício · **Na base:** 2024–2026
+- **Acesso:** ++api++ e download (XLSX) · **Restrições:** robots.txt não restringe /fnde
+- **Já existe em:** baixado aqui (dados_brutos/fnde_fundeb_exercicio)
+- **Observação:** Comparado com o pago no ano civil (Banco do Brasil): contribuição quase igual; complementações divergem.
+
 ### Siope: indicadores legais (% em MDE, % do Fundeb na remuneração), receitas, despesas por natureza e remuneração dos profissionais
 
 - **Para que serve:** c · **Entra no painel:** sim, quando disponível (Condições materiais) · **Situação:** indisponível
@@ -193,13 +202,24 @@ Regras seguidas: só dados públicos, sem login; `robots.txt` consultado antes d
 - **Já existe em:** não
 - **Observação:** Fonte do próprio arquivo do FNDE (sisweb.tesouro.gov.br).
 
+## Objetivo / uso: c (correção)
+
+### IPCA (número-índice mensal), para corrigir valores pela inflação
+
+- **Para que serve:** c (correção) · **Entra no painel:** sim (aba corrigida pela inflação) · **Situação:** na base
+- **Fonte oficial:** IBGE/SIDRA, tabela 1737 — https://apisidra.ibge.gov.br
+- **Período disponível:** jan/2021–dez/2025 na base · **Periodicidade:** mensal · **Na base:** 2021–2025
+- **Acesso:** API · **Restrições:** sem robots.txt (404)
+- **Já existe em:** baixado aqui
+- **Observação:** Média anual dos 12 meses; base: reais médios de 2025.
+
 ## Objetivo / uso: c (e b
 
 ### Fundeb por ente federado e origem de receita (contribuições, VAAF, VAAT, VAAR, tempo integral), pago pelo Banco do Brasil
 
 - **Para que serve:** c (e b, informativo) · **Entra no painel:** sim (Condições materiais) · **Situação:** na base
 - **Fonte oficial:** FNDE — https://www.gov.br/fnde/pt-br/acesso-a-informacao/acoes-e-programas/financiamento/fundeb/valores-repassados-2021-a-2025
-- **Período disponível:** 2021–2025 · **Periodicidade:** anual · **Na base:** 2021–2025
+- **Período disponível:** 2021–2025 · **Periodicidade:** anual · **Na base:** 2021–2026
 - **Acesso:** ++api++ e download (XLSX) · **Restrições:** robots.txt não restringe /fnde
 - **Já existe em:** 2024 e 2025 em 03_doutorado/04_dados_ICMS_IQE_VAAR/dados_brutos/fnde/repasses_bb; 2021–2023 baixados aqui
 - **Observação:** Ano civil de pagamento. Há um '2024 (1)' no portal, diferente do 2024 usado (ver conferência).

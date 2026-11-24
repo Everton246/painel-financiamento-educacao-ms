@@ -1,10 +1,10 @@
 # Conferência da base do painel
 
-Gerado por `tratamento/conferir.py` em 24/11/2026 12:50. OK = conferência cumprida; FALHA = conferência obrigatória não cumprida; AVISO = diferença registrada que não impede o uso (explicada no texto).
+Gerado por `tratamento/conferir.py` em 24/11/2026 14:05. OK = conferência cumprida; FALHA = conferência obrigatória não cumprida; AVISO = diferença registrada que não impede o uso (explicada no texto).
 
 ## 1. 79 municípios em cada base
 
-- OK: nenhuma base traz código fora dos 79 municípios (507 combinações indicador × ano)
+- OK: nenhuma base traz código fora dos 79 municípios (527 combinações indicador × ano)
 - OK: objetivos a e b, IQE-MS, Fundeb, Censo e IBGE: 79 municípios em todos os anos com dado
 
 Combinações com menos de 79 municípios com valor (o restante aparece como *sem dado*):
@@ -140,6 +140,12 @@ Combinações com menos de 79 municípios com valor (o restante aparece como *se
   - Itaquiraí 2025: DCA R$ 41.501.319,89; MSC R$ -507.948,82
   - Itaquiraí 2024: DCA R$ 40.892.956,43; MSC R$ -690.921,75
   - Dourados 2022: DCA R$ 337.988.632,16; MSC R$ 378.260.460,20
+- OK: VAAR do exercício de 2025 na tabela de receita total do FNDE (Portaria nº 5/2026) = VAAR após ajuste do 04_dados em 79 de 79 municípios
+- OK: Fundeb 2025, total: devido no exercício R$ 3.397.034.524,34 × pago no ano civil R$ 3.409.916.735,54 (-0,38%); municípios com diferença acima de 1%: 15 de 79 (informativo: as fontes medem coisas diferentes)
+- OK: Fundeb 2025, receita da contribuição: devido no exercício R$ 3.364.696.770,20 × pago no ano civil R$ 3.356.025.955,34 (0,26%); municípios com diferença acima de 1%: 0 de 79 (informativo: as fontes medem coisas diferentes)
+- OK: Fundeb 2025, VAAT: devido no exercício R$ 11.205.118,28 × pago no ano civil R$ 15.287.525,81 (-26,70%); municípios com diferença acima de 1%: 12 de 79 (informativo: as fontes medem coisas diferentes)
+- OK: Fundeb 2025, VAAR: devido no exercício R$ 21.132.635,86 × pago no ano civil R$ 25.753.393,65 (-17,94%); municípios com diferença acima de 1%: 40 de 79 (informativo: as fontes medem coisas diferentes)
+- OK: Fundeb 2024, VAAT: devido no exercício R$ 18.686.056,67 × pago no ano civil R$ 13.654.753,16 (36,85%); municípios com diferença acima de 1%: 12 de 79 (informativo: as fontes medem coisas diferentes)
 - OK: Matrículas da rede municipal 2024: soma das escolas (painel do Iquems) = sinopse (04_dados) em 79 de 79 municípios
 - OK: Fundeb 2024: o arquivo '2024 (1)' do portal tem o mesmo total líquido do arquivo usado em 79 dos 79 municípios
 

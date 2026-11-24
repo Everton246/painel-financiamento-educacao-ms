@@ -4,6 +4,7 @@
   em 24/11/2026: 2023).
 - Estimativas de população (SIDRA, tabela 6579, variável 9324), 2021, 2024, 2025 e 2026 (não há estimativa em 2022 e 2023,
   anos do Censo e da contagem: a pesquisa usa a população do Censo 2022, já baixada pelo 04_dados).
+- IPCA (SIDRA, tabela 1737, variável 2266, número-índice), jan/2021 a dez/2025, para a aba de valores corrigidos.
 - Malha municipal: não é baixada; o tratamento copia a do painel do Iquems (dados/base/malha_ms_municipios.geojson).
 apisidra.ibge.gov.br: robots.txt inexistente (404, consultado em 24/11/2026).
 """
@@ -16,6 +17,9 @@ CONSULTAS = {
     "pib_municipios_sidra5938.json": "https://apisidra.ibge.gov.br/values/t/5938/n6/in%20n3%2050/v/37/p/2021,2022,2023",
     "estimativa_populacao_sidra6579_2021_2024_2025_2026.json":
         "https://apisidra.ibge.gov.br/values/t/6579/n6/in%20n3%2050/v/9324/p/2021,2024,2025,2026",
+    # IPCA, número-índice mensal (dez/1993 = 100), jan/2021 a dez/2025: correção pela inflação (página de condições)
+    "ipca_numero_indice_sidra1737_2021_2025.json":
+        "https://apisidra.ibge.gov.br/values/t/1737/n1/all/v/2266/p/" + ",".join(f"{a}{m:02d}" for a in range(2021, 2026) for m in range(1, 13)),
 }
 
 
