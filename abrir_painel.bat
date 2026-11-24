@@ -17,12 +17,12 @@ if errorlevel 1 (
   python -m pip install --user -r requirements.txt
 )
 
-if not exist "dadosase\indicadores.parquet" (
+if not exist "dados\base\indicadores.parquet" (
   echo A base ainda nao foi montada. Rode primeiro atualizar.bat.
   pause
   exit /b 1
 )
 
 echo Abrindo o painel no navegador... ^(para fechar, feche esta janela^)
-python -m streamlit run painelpp.py --server.headless false --browser.gatherUsageStats false --server.port 8502
+python -m streamlit run painel\app.py --server.headless false --browser.gatherUsageStats false --server.port 8502
 pause
